@@ -13,11 +13,13 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
+            $table->string('name');
             $table->longText('description');
             $table->enum('priority',['high','medium','low'])->nullable();
             $table->unsignedBigInteger('created_by');
 
-            $table->timestamp('completed_at');
+            $table->timestamp('completed_at')->nullable();
+            $table->timestamp('due_date');
             $table->timestamps();
             $table->softDeletes();        
 

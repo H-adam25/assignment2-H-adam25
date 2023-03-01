@@ -15,9 +15,11 @@ return new class extends Migration
             $table->id();
             $table->string('name');
             $table->string('url');
+            $table->string('mime_type');
             $table->integer('size');
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('task_id');
+            
 
             $table->timestamps();
             $table->softDeletes();
