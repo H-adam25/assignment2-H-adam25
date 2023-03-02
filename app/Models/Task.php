@@ -17,9 +17,29 @@ class Task extends Model
     protected $fillable = [
         'name',
         'description',
-        'due_date',
-        'status',
         'priority',
+        'due_date',
         'created_by',
+        'completed_at',
     ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'due_date' => 'datetime',
+        'completed_at' => 'datetime',
+    ];
+
+    /**
+     * Get the user that created the task.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
 }
