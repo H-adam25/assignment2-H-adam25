@@ -10,9 +10,19 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = Task::all();
+        $user = $request->user();
+
+        $tasks = match ($request->get('filter')) {
+            'urgent' => $user->tasks()->wherePriority('high')->get(),
+            'latest' => $user->tasks()->orderBy('created_at', 'desc')->get(),
+            default => $user->tasks
+        };
+
+        $tasks = $tasks->filter(function ($task) {
+            return $task->created_by === auth()->id();
+        });
 
         return view('tasks', compact('tasks'));
     }
@@ -33,11 +43,15 @@ class TaskController extends Controller
         $validated = $request->validate([
             'name' => 'required|string',
             'description' => 'required|string',
+            'due_date' => 'required|date:Y-m-d\TH:i',
+            'priority' => 'required|in:low,medium,high'
         ]);
 
         $task = Task::create([
             'name' => $validated['name'],
             'description' => $validated['description'],
+            'due_date' => $validated['due_date'],
+            'priority' => $validated['priority'],
             'created_by' => auth()->id(),
         ]);
 
@@ -57,7 +71,7 @@ class TaskController extends Controller
      */
     public function edit(Task $task)
     {
-        //
+        return view('edit-task', compact('task'));
     }
 
     /**
@@ -65,7 +79,20 @@ class TaskController extends Controller
      */
     public function update(Request $request, Task $task)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'filled|string',
+            'description' => 'filled|string',
+            'due_date' => 'filled|date:Y-m-d\TH:i',
+            'priority' => 'filled|in:low,medium,high',
+        ]);
+
+        if ($request->filled('completed')) {
+            $validated['completed_at'] = now();
+        }
+
+        $task->update($validated);
+
+        return redirect()->route('tasks.show', ['task' => $task]);
     }
 
     /**
@@ -73,6 +100,8 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        //
+        $task->delete();
+
+        return redirect()->route('tasks.index');
     }
 }
