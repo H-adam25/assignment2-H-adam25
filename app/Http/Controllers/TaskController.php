@@ -12,11 +12,17 @@ class TaskController extends Controller
      */
     public function index(Request $request)
     {
+        $user = $request->user();
+
         $tasks = match ($request->get('filter')) {
-            'urgent' => Task::wherePriority('high')->get(),
-            'latest' => Task::orderBy('created_at', 'desc')->get(),
-            default => Task::all()
+            'urgent' => $user->tasks()->wherePriority('high')->get(),
+            'latest' => $user->tasks()->orderBy('created_at', 'desc')->get(),
+            default => $user->tasks
         };
+
+        $tasks = $tasks->filter(function ($task) {
+            return $task->created_by === auth()->id();
+        });
 
         return view('tasks', compact('tasks'));
     }
